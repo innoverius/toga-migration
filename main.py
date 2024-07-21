@@ -44,12 +44,16 @@ def initial_test():
 
     except Exception as e:
         print(f"An error occurred: {e}")
+
     finally:
-        # Detach the databases if needed
-        detach_db_query = f"EXEC sp_detach_db '{original_db_name}'"
-        cursor.execute(detach_db_query)
-        conn.commit()
-        print(f"Database {original_db_name} detached successfully.")
+        try:
+            # Detach the original database if needed
+            detach_db_query = f"EXEC sp_detach_db '{original_db_name}'"
+            cursor.execute(detach_db_query)
+            conn.commit()
+            print(f"Database {original_db_name} detached successfully.")
+        except Exception as e:
+            print(f"An error occurred during detachment: {e}")
 
         cursor.close()
         conn.close()
