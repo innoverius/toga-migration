@@ -11,7 +11,7 @@ def initial_test():
     new_db_name = 'emptytoga'
 
     # Connection string
-    connection_string = f'DRIVER={{ODBC Driver 18 for SQL Server}};SERVER={server};UID={username};PWD={password};TrustServerCertificate=yes'
+    connection_string = f'DRIVER={{ODBC Driver 18 for SQL Server}};SERVER={server};UID={username};PWD={password};DATABASE={original_db_name};TrustServerCertificate=yes'
 
     # Function to execute a query without a transaction
     def execute_query_without_transaction(query):
