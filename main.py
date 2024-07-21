@@ -11,7 +11,7 @@ def initial_test():
     new_db_name = 'emptytoga'
 
     # Connect to SQL Server
-    connection_string = f'DRIVER={{ODBC Driver 18 for SQL Server}};SERVER={server};UID={username};PWD={password}'
+    connection_string = f'DRIVER={{ODBC Driver 18 for SQL Server}};SERVER={server};UID={username};PWD={password};TrustServerCertificate=yes'
     conn = pyodbc.connect(connection_string)
     cursor = conn.cursor()
 
