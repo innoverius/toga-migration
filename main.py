@@ -10,16 +10,25 @@ def initial_test():
     original_db_name = 'toga'
     new_db_name = 'emptytoga'
 
-    # Connect to SQL Server
+    # Connection string
     connection_string = f'DRIVER={{ODBC Driver 18 for SQL Server}};SERVER={server};UID={username};PWD={password};TrustServerCertificate=yes'
+
+    # Function to execute a query without a transaction
+    def execute_query_without_transaction(query):
+        conn = pyodbc.connect(connection_string, autocommit=True)
+        cursor = conn.cursor()
+        cursor.execute(query)
+        cursor.close()
+        conn.close()
+
+    # Connect to SQL Server
     conn = pyodbc.connect(connection_string)
     cursor = conn.cursor()
 
     try:
         # Attach the original database
         attach_db_query = f"CREATE DATABASE {original_db_name} ON (FILENAME = '{original_db_mdf_path}') FOR ATTACH"
-        cursor.execute(attach_db_query)
-        conn.commit()
+        execute_query_without_transaction(attach_db_query)
         print(f"Database {original_db_name} attached successfully.")
 
         # Generate the schema script
@@ -31,8 +40,7 @@ def initial_test():
 
         # Create a new empty database
         create_db_query = f"CREATE DATABASE {new_db_name}"
-        cursor.execute(create_db_query)
-        conn.commit()
+        execute_query_without_transaction(create_db_query)
         print(f"Database {new_db_name} created successfully.")
 
         # Apply the schema script to the new database
@@ -49,8 +57,7 @@ def initial_test():
         try:
             # Detach the original database if needed
             detach_db_query = f"EXEC sp_detach_db '{original_db_name}'"
-            cursor.execute(detach_db_query)
-            conn.commit()
+            execute_query_without_transaction(detach_db_query)
             print(f"Database {original_db_name} detached successfully.")
         except Exception as e:
             print(f"An error occurred during detachment: {e}")
