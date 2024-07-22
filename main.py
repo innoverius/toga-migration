@@ -85,32 +85,37 @@ def fetch_schema_information(server, username, password, database):
     for row in cursor.fetchall():
         print(row)
 
-    # Fetch the row count information for each table
-    row_count_query = """
+    # Fetch the size contribution of each table
+    size_query = """
     SELECT 
-        t.TABLE_SCHEMA, 
-        t.TABLE_NAME, 
-        SUM(p.rows) as TOTAL_ROWS
+        t.NAME AS TABLE_NAME,
+        s.NAME AS SCHEMA_NAME,
+        SUM(a.total_pages) * 8 AS TOTAL_SPACE_KB,
+        SUM(a.used_pages) * 8 AS USED_SPACE_KB,
+        SUM(a.data_pages) * 8 AS DATA_SPACE_KB
     FROM 
-        INFORMATION_SCHEMA.TABLES t
-    JOIN 
-        sys.tables st ON t.TABLE_NAME = st.name
-    JOIN 
-        sys.partitions p ON st.object_id = p.object_id
+        sys.tables t
+    INNER JOIN      
+        sys.indexes i ON t.OBJECT_ID = i.object_id
+    INNER JOIN 
+        sys.partitions p ON i.object_id = p.OBJECT_ID AND i.index_id = p.index_id
+    INNER JOIN 
+        sys.allocation_units a ON p.partition_id = a.container_id
+    INNER JOIN 
+        sys.schemas s ON t.schema_id = s.schema_id
     WHERE 
-        p.index_id IN (0, 1)  -- Clustered index or heap
+        t.is_ms_shipped = 0
     GROUP BY 
-        t.TABLE_SCHEMA, 
-        t.TABLE_NAME
+        t.Name, s.Name
     ORDER BY 
-        TOTAL_ROWS DESC;
+        TOTAL_SPACE_KB DESC;
     """
 
-    cursor.execute(row_count_query)
+    cursor.execute(size_query)
 
-    # Retrieve and print the row count information
+    # Retrieve and print the size contribution information
     for row in cursor.fetchall():
-        print(f"Schema: {row.TABLE_SCHEMA}, Table: {row.TABLE_NAME}, Rows: {row.TOTAL_ROWS}")
+        print(f"Schema: {row.SCHEMA_NAME}, Table: {row.TABLE_NAME}, Total Space (KB): {row.TOTAL_SPACE_KB}, Used Space (KB): {row.USED_SPACE_KB}, Data Space (KB): {row.DATA_SPACE_KB}")
 
     # Close the cursor and connection
     cursor.close()
