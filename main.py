@@ -3,7 +3,7 @@ import pyodbc
 # Define the connection string
 server = 'localhost'  # or the server name/IP
 database = 'toga'
-username = 'your_username'  # replace with your username
+username = 'SA'  # replace with your username
 password = 'V_p2YG3ctvfN7w.7'
 driver = '{ODBC Driver 18 for SQL Server}'
 
