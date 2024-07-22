@@ -13,7 +13,9 @@ conn_str = (
     f"SERVER={server};"
     f"DATABASE={database};"
     f"UID={username};"
-    f"PWD={password}"
+    f"PWD={password};"
+    # f"Encrypt=no;"  # Disable encryption
+    f"TrustServerCertificate=yes;"  # Trust the server certificate
 )
 
 # Connect to the database
