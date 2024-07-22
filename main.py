@@ -85,6 +85,29 @@ def fetch_schema_information(server, username, password, database):
     for row in cursor.fetchall():
         print(row)
 
+    # Fetch the row count information for each table
+    row_count_query = """
+    SELECT 
+        TABLE_SCHEMA, 
+        TABLE_NAME, 
+        SUM(PARTITIONS.rows) as TOTAL_ROWS
+    FROM 
+        INFORMATION_SCHEMA.TABLES 
+    JOIN 
+        sys.partitions PARTITIONS ON INFORMATION_SCHEMA.TABLES.TABLE_NAME = PARTITIONS.object_id
+    WHERE 
+        PARTITIONS.index_id IN (0, 1)  -- Clustered index or heap
+    GROUP BY 
+        TABLE_SCHEMA, 
+        TABLE_NAME;
+    """
+
+    cursor.execute(row_count_query)
+
+    # Retrieve and print the row count information
+    for row in cursor.fetchall():
+        print(f"Schema: {row.TABLE_SCHEMA}, Table: {row.TABLE_NAME}, Rows: {row.TOTAL_ROWS}")
+
     # Close the cursor and connection
     cursor.close()
     conn.close()
