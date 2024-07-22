@@ -24,8 +24,8 @@ conn_str = (
     f"TrustServerCertificate=yes;"  # Trust the server certificate
 )
 
-# Connect to the master database
-conn = pyodbc.connect(conn_str)
+# Connect to the master database with autocommit
+conn = pyodbc.connect(conn_str, autocommit=True)
 cursor = conn.cursor()
 
 # Check if the toga database exists
@@ -43,7 +43,6 @@ if not database_exists:
     FOR ATTACH;
     """
     cursor.execute(attach_query)
-    conn.commit()
     print("Database 'toga' created successfully.")
 else:
     print("Database 'toga' already exists.")
