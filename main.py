@@ -101,7 +101,9 @@ def fetch_schema_information(server, username, password, database):
         p.index_id IN (0, 1)  -- Clustered index or heap
     GROUP BY 
         t.TABLE_SCHEMA, 
-        t.TABLE_NAME;
+        t.TABLE_NAME
+    ORDER BY 
+        TOTAL_ROWS DESC;
     """
 
     cursor.execute(row_count_query)
