@@ -14,7 +14,7 @@ conn_str = (
     f"DATABASE={database};"
     f"UID={username};"
     f"PWD={password};"
-    # f"Encrypt=no;"  # Disable encryption
+    f"Encrypt=no;"  # Disable encryption
     f"TrustServerCertificate=yes;"  # Trust the server certificate
 )
 
