@@ -88,18 +88,20 @@ def fetch_schema_information(server, username, password, database):
     # Fetch the row count information for each table
     row_count_query = """
     SELECT 
-        TABLE_SCHEMA, 
-        TABLE_NAME, 
-        SUM(PARTITIONS.rows) as TOTAL_ROWS
+        t.TABLE_SCHEMA, 
+        t.TABLE_NAME, 
+        SUM(p.rows) as TOTAL_ROWS
     FROM 
-        INFORMATION_SCHEMA.TABLES 
+        INFORMATION_SCHEMA.TABLES t
     JOIN 
-        sys.partitions PARTITIONS ON INFORMATION_SCHEMA.TABLES.TABLE_NAME = PARTITIONS.object_id
+        sys.tables st ON t.TABLE_NAME = st.name
+    JOIN 
+        sys.partitions p ON st.object_id = p.object_id
     WHERE 
-        PARTITIONS.index_id IN (0, 1)  -- Clustered index or heap
+        p.index_id IN (0, 1)  -- Clustered index or heap
     GROUP BY 
-        TABLE_SCHEMA, 
-        TABLE_NAME;
+        t.TABLE_SCHEMA, 
+        t.TABLE_NAME;
     """
 
     cursor.execute(row_count_query)
