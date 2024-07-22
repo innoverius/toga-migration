@@ -46,9 +46,7 @@ def check_and_create_database(server, username, password, mdf_file, ndf_file, ld
     conn.close()
 
 
-def fetch_schema_information(server, username, password):
-    # Define the connection string for the toga database
-    database = 'toga'
+def fetch_schema_information(server, username, password, database):
     driver = '{ODBC Driver 18 for SQL Server}'
 
     # Set up the connection to the toga database
@@ -95,14 +93,15 @@ def fetch_schema_information(server, username, password):
 if __name__ == "__main__":
     # Set up argument parsing
     parser = argparse.ArgumentParser(description='Check and create a SQL Server database if it does not exist, and fetch its schema.')
-    parser.add_argument('--server', required=True, help='The SQL Server name or IP address')
-    parser.add_argument('--username', required=True, help='The SQL Server username')
-    parser.add_argument('--password', required=True, help='The SQL Server password')
-    parser.add_argument('--mdf_file', required=True, help='The primary database file (.mdf)')
-    parser.add_argument('--ndf_file', required=True, help='The secondary database file (.ndf)')
-    parser.add_argument('--ldf_file', required=True, help='The log database file (.ldf)')
+    parser.add_argument('-s', dest='server', required=True, help='The SQL Server name or IP address')
+    parser.add_argument('-u', dest='username', required=True, help='The SQL Server username')
+    parser.add_argument('-p', dest='password', required=True, help='The SQL Server password')
+    parser.add_argument('-db', dest='database', required=True, help='The SQL database')
+    parser.add_argument('-mdf', dest='mdf_file', required=True, help='The primary database file (.mdf)')
+    parser.add_argument('-ndf', dest='ndf_file', required=True, help='The secondary database file (.ndf)')
+    parser.add_argument('-ldf', dest='ldf_file', required=True, help='The log database file (.ldf)')
 
     args = parser.parse_args()
 
     check_and_create_database(args.server, args.username, args.password, args.mdf_file, args.ndf_file, args.ldf_file)
-    fetch_schema_information(args.server, args.username, args.password)
+    fetch_schema_information(args.server, args.username, args.password, args.database)
