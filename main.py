@@ -1,17 +1,28 @@
 import pyodbc
-import os
+import argparse
+
+# Set up argument parsing
+parser = argparse.ArgumentParser(description='Check and create a SQL Server database if it does not exist, and fetch its schema.')
+parser.add_argument('--server', required=True, help='The SQL Server name or IP address')
+parser.add_argument('--username', required=True, help='The SQL Server username')
+parser.add_argument('--password', required=True, help='The SQL Server password')
+parser.add_argument('--mdf_file', required=True, help='The primary database file (.mdf)')
+parser.add_argument('--ndf_file', required=True, help='The secondary database file (.ndf)')
+parser.add_argument('--ldf_file', required=True, help='The log database file (.ldf)')
+
+args = parser.parse_args()
 
 # Define the connection string for the master database
-server = 'localhost'  # or the server name/IP
+server = args.server
 database = 'master'  # Connect to master database to check and create toga database
-username = 'SA'  # System Administrator username
-password = 'V_p2YG3ctvfN7w.7'
+username = args.username
+password = args.password
 driver = '{ODBC Driver 18 for SQL Server}'
 
 # Define the database files location
-mdf_file = '/home/toga-database/database/toga.mdf'
-ndf_file = '/home/toga-database/database/ftrow_Documenten.ndf'
-ldf_file = '/home/toga-database/database/toga_1.ldf'
+mdf_file = args.mdf_file
+ndf_file = args.ndf_file
+ldf_file = args.ldf_file
 
 # Set up the connection to the master database
 conn_str = (
