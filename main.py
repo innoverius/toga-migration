@@ -2,16 +2,16 @@ import pyodbc
 import argparse
 
 
-def check_and_create_database(server, username, password, mdf_file, ndf_file, ldf_file):
+def check_and_create_database(server, username, password, database, mdf_file, ndf_file, ldf_file):
     # Define the connection string for the master database
-    database = 'master'  # Connect to master database to check and create toga database
+    master_database = 'master'  # Connect to master database to check and create the database
     driver = '{ODBC Driver 18 for SQL Server}'
 
     # Set up the connection to the master database
     conn_str = (
         f"DRIVER={driver};"
         f"SERVER={server};"
-        f"DATABASE={database};"
+        f"DATABASE={master_database};"
         f"UID={username};"
         f"PWD={password};"
         f"Encrypt=no;"  # Disable encryption for simplicity
@@ -22,24 +22,24 @@ def check_and_create_database(server, username, password, mdf_file, ndf_file, ld
     conn = pyodbc.connect(conn_str, autocommit=True)
     cursor = conn.cursor()
 
-    # Check if the toga database exists
-    cursor.execute("SELECT name FROM sys.databases WHERE name = 'toga'")
+    # Check if the database exists
+    cursor.execute(f"SELECT name FROM sys.databases WHERE name = '{database}'")
     database_exists = cursor.fetchone()
 
     if not database_exists:
         # Database does not exist, create it
-        print("Database 'toga' does not exist. Creating database...")
+        print(f"Database '{database}' does not exist. Creating database...")
         attach_query = f"""
-        CREATE DATABASE toga ON 
+        CREATE DATABASE {database} ON 
         (FILENAME = '{mdf_file}'),
         (FILENAME = '{ndf_file}'),
         (FILENAME = '{ldf_file}')
         FOR ATTACH;
         """
         cursor.execute(attach_query)
-        print("Database 'toga' created successfully.")
+        print(f"Database '{database}' created successfully.")
     else:
-        print("Database 'toga' already exists.")
+        print(f"Database '{database}' already exists.")
 
     # Close the connection to the master database
     cursor.close()
@@ -49,7 +49,7 @@ def check_and_create_database(server, username, password, mdf_file, ndf_file, ld
 def fetch_schema_information(server, username, password, database):
     driver = '{ODBC Driver 18 for SQL Server}'
 
-    # Set up the connection to the toga database
+    # Set up the connection to the database
     conn_str = (
         f"DRIVER={driver};"
         f"SERVER={server};"
@@ -60,7 +60,7 @@ def fetch_schema_information(server, username, password, database):
         f"TrustServerCertificate=yes;"  # Trust the server certificate
     )
 
-    # Connect to the toga database
+    # Connect to the database
     conn = pyodbc.connect(conn_str)
     cursor = conn.cursor()
 
@@ -103,5 +103,5 @@ if __name__ == "__main__":
 
     args = parser.parse_args()
 
-    check_and_create_database(args.server, args.username, args.password, args.mdf_file, args.ndf_file, args.ldf_file)
+    check_and_create_database(args.server, args.username, args.password, args.database, args.mdf_file, args.ndf_file, args.ldf_file)
     fetch_schema_information(args.server, args.username, args.password, args.database)
