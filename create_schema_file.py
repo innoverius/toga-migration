@@ -1,5 +1,6 @@
 import pyodbc
 import argparse
+import datetime as dt
 
 
 def check_and_create_database(server, username, password, database, mdf_file, ndf_file, ldf_file):
@@ -120,7 +121,16 @@ def fetch_schema_information(server, username, password, database, output_file):
                         formatted_value = str(value).replace("'", "''")
                         row_data.append(f"'{formatted_value}'")
                     elif col_type in ['datetime', 'smalldatetime', 'date', 'time', 'datetime2']:
-                        row_data.append(f"'{value}'")
+                        # Format datetime values to ISO 8601 format
+                        if isinstance(value, dt.datetime):
+                            formatted_value = value.strftime('%Y%m%dT%H:%M:%S')
+                            row_data.append(f"'{formatted_value}'")
+                        elif isinstance(value, dt.date):
+                            formatted_value = value.strftime('%Y%m%d')
+                            row_data.append(f"'{formatted_value}'")
+                        elif isinstance(value, dt.time):
+                            formatted_value = value.strftime('%H:%M:%S')
+                            row_data.append(f"'{formatted_value}'")
                     else:
                         formatted_value = str(value).replace("'", "''")
                         row_data.append(f"'{formatted_value}'")  # Default case for strings and other types
