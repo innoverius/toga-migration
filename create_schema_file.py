@@ -88,9 +88,11 @@ def fetch_schema_information(server, username, password, database, output_file):
                 current_table = table_key
 
             f.write(f"  [{schema['column_name']}] {schema['data_type']}")
-            if schema['data_type'].upper() in ['VARCHAR', 'CHAR', 'NVARCHAR', 'NCHAR'] and schema[
-                'character_maximum_length'] and int(schema['character_maximum_length']) > 0:
-                f.write(f"({schema['character_maximum_length']})")
+            if schema['data_type'].upper() in ['VARCHAR', 'CHAR', 'NVARCHAR', 'NCHAR']:
+                if schema['character_maximum_length'] == -1:
+                    f.write("(MAX)")
+                elif schema['character_maximum_length'] and int(schema['character_maximum_length']) > 0:
+                    f.write(f"({schema['character_maximum_length']})")
             if schema['is_nullable'] == 'NO':
                 f.write(" NOT NULL")
             f.write(",\n")
