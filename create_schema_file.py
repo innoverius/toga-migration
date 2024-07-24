@@ -109,20 +109,20 @@ def fetch_schema_information(server, username, password, database, output_file):
             f.write(f"\n-- Data for table [{table_schema}].[{table_name}]\n")
             for row in rows:
                 row_data = []
-                for value, col_info in zip(row, columns):
-                    col_name, col_type = col_info
+                for value, (col_name, col_type) in zip(row, columns):
                     if value is None:
                         row_data.append('NULL')
-                    elif col_type in ['int', 'decimal', 'float', 'money', 'numeric', 'real', 'smallint', 'tinyint',
-                                      'bit']:
+                    elif col_type in ['int', 'decimal', 'float', 'money', 'numeric', 'real', 'smallint', 'tinyint']:
                         row_data.append(str(value))
+                    elif col_type == 'bit':
+                        row_data.append('1' if value else '0')
                     elif col_type in ['char', 'nchar', 'varchar', 'nvarchar']:
-                        formatted_value = str(value).replace('\'', '\'\'')
+                        formatted_value = str(value).replace("'", "''")
                         row_data.append(f"'{formatted_value}'")
                     elif col_type in ['datetime', 'smalldatetime', 'date', 'time', 'datetime2']:
                         row_data.append(f"'{value}'")
                     else:
-                        formatted_value = str(value).replace('\'', '\'\'')
+                        formatted_value = str(value).replace("'", "''")
                         row_data.append(f"'{formatted_value}'")  # Default case for strings and other types
 
                 row_data_joined = ", ".join(row_data)
