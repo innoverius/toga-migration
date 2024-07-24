@@ -79,7 +79,7 @@ def fetch_schema_information(server, username, password, database, output_file):
             if table_key not in tables:
                 tables[table_key] = []
 
-            tables[table_key].append(schema['column_name'])
+            tables[table_key].append((schema['column_name'], schema['data_type']))
 
             if current_table != table_key:
                 if current_table:
@@ -100,17 +100,33 @@ def fetch_schema_information(server, username, password, database, output_file):
         if current_table:
             f.write(');\n')
 
-        # Now fetch up to 10 rows from each table
         for (table_schema, table_name), columns in tables.items():
-            column_list = ', '.join([f"[{col}]" for col in columns])
+            column_list = ', '.join([f"[{col}]" for col, _ in columns])
             row_query = f"SELECT TOP 10 {column_list} FROM [{table_schema}].[{table_name}]"
             cursor.execute(row_query)
             rows = cursor.fetchall()
 
             f.write(f"\n-- Data for table [{table_schema}].[{table_name}]\n")
             for row in rows:
-                row_data = ", ".join([str(item) if item is not None else 'NULL' for item in row])
-                f.write(f"INSERT INTO [{table_schema}].[{table_name}] ({column_list}) VALUES ({row_data});\n")
+                row_data = []
+                for value, col_info in zip(row, columns):
+                    col_name, col_type = col_info
+                    if value is None:
+                        row_data.append('NULL')
+                    elif col_type in ['int', 'decimal', 'float', 'money', 'numeric', 'real', 'smallint', 'tinyint',
+                                      'bit']:
+                        row_data.append(str(value))
+                    elif col_type in ['char', 'nchar', 'varchar', 'nvarchar']:
+                        formatted_value = str(value).replace('\'', '\'\'')
+                        row_data.append(f"'{formatted_value}'")
+                    elif col_type in ['datetime', 'smalldatetime', 'date', 'time', 'datetime2']:
+                        row_data.append(f"'{value}'")
+                    else:
+                        formatted_value = str(value).replace('\'', '\'\'')
+                        row_data.append(f"'{formatted_value}'")  # Default case for strings and other types
+
+                row_data_joined = ", ".join(row_data)
+                f.write(f"INSERT INTO [{table_schema}].[{table_name}] ({column_list}) VALUES ({row_data_joined});\n")
 
     print(f"Schema information with sample data exported to '{output_file}'.")
 
