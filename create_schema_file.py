@@ -42,7 +42,6 @@ def check_and_create_database(server, username, password, database, mdf_file, nd
 
 def fetch_schema_information(server, username, password, database, output_file):
     driver = '{ODBC Driver 18 for SQL Server}'
-
     conn_str = (
         f"DRIVER={driver};"
         f"SERVER={server};"
@@ -52,28 +51,18 @@ def fetch_schema_information(server, username, password, database, output_file):
         f"Encrypt=no;"
         f"TrustServerCertificate=yes;"
     )
-
     conn = pyodbc.connect(conn_str)
     cursor = conn.cursor()
 
     schema_query = """
-    SELECT 
-        TABLE_SCHEMA, 
-        TABLE_NAME, 
-        COLUMN_NAME, 
-        DATA_TYPE,
-        IS_NULLABLE,
-        CHARACTER_MAXIMUM_LENGTH
-    FROM 
-        INFORMATION_SCHEMA.COLUMNS
-    ORDER BY 
-        TABLE_SCHEMA, 
-        TABLE_NAME, 
-        ORDINAL_POSITION;
+    SELECT TABLE_SCHEMA, TABLE_NAME, COLUMN_NAME, DATA_TYPE, IS_NULLABLE, CHARACTER_MAXIMUM_LENGTH
+    FROM INFORMATION_SCHEMA.COLUMNS
+    ORDER BY TABLE_SCHEMA, TABLE_NAME, ORDINAL_POSITION;
     """
 
     cursor.execute(schema_query)
 
+    tables = {}
     with open(output_file, 'w') as f:
         current_table = None
         for row in cursor.fetchall():
@@ -86,15 +75,21 @@ def fetch_schema_information(server, username, password, database, output_file):
                 'character_maximum_length': row.CHARACTER_MAXIMUM_LENGTH
             }
 
-            if current_table != (schema['table_schema'], schema['table_name']):
+            table_key = (schema['table_schema'], schema['table_name'])
+            if table_key not in tables:
+                tables[table_key] = []
+
+            tables[table_key].append(schema['column_name'])
+
+            if current_table != table_key:
                 if current_table:
                     f.write(');\n\n')
                 f.write(f"CREATE TABLE [{schema['table_schema']}].[{schema['table_name']}] (\n")
-                current_table = (schema['table_schema'], schema['table_name'])
+                current_table = table_key
 
-            f.write(f"    [{schema['column_name']}] {schema['data_type']}")
+            f.write(f"  [{schema['column_name']}] {schema['data_type']}")
             if schema['data_type'].upper() in ['VARCHAR', 'CHAR', 'NVARCHAR', 'NCHAR'] and schema[
-                'character_maximum_length']:
+                'character_maximum_length'] and int(schema['character_maximum_length']) > 0:
                 f.write(f"({schema['character_maximum_length']})")
             if schema['is_nullable'] == 'NO':
                 f.write(" NOT NULL")
@@ -103,7 +98,19 @@ def fetch_schema_information(server, username, password, database, output_file):
         if current_table:
             f.write(');\n')
 
-    print(f"Schema information exported to '{output_file}'.")
+        # Now fetch up to 10 rows from each table
+        for (table_schema, table_name), columns in tables.items():
+            column_list = ', '.join([f"[{col}]" for col in columns])
+            row_query = f"SELECT TOP 10 {column_list} FROM [{table_schema}].[{table_name}]"
+            cursor.execute(row_query)
+            rows = cursor.fetchall()
+
+            f.write(f"\n-- Data for table [{table_schema}].[{table_name}]\n")
+            for row in rows:
+                row_data = ", ".join([str(item) if item is not None else 'NULL' for item in row])
+                f.write(f"INSERT INTO [{table_schema}].[{table_name}] ({column_list}) VALUES ({row_data});\n")
+
+    print(f"Schema information with sample data exported to '{output_file}'.")
 
     cursor.close()
     conn.close()
