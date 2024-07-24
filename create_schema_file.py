@@ -123,7 +123,7 @@ def fetch_schema_information(server, username, password, database, output_file):
                     elif col_type in ['datetime', 'smalldatetime', 'date', 'time', 'datetime2']:
                         # Format datetime values to ISO 8601 format
                         if isinstance(value, dt.datetime):
-                            formatted_value = value.strftime('%Y%m%dT%H:%M:%S')
+                            formatted_value = value.strftime('%Y-%m-%dT%H:%M:%S')
                             row_data.append(f"'{formatted_value}'")
                         elif isinstance(value, dt.date):
                             formatted_value = value.strftime('%Y%m%d')
