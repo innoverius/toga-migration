@@ -23,7 +23,8 @@ def connect_sql_server(args):
         f"SERVER={args.toga_server};"
         f"DATABASE={args.toga_database};"
         f"UID={args.toga_username};"
-        f"PWD={args.toga_password}"
+        f"PWD={args.toga_password};"
+        f"TrustServerCertificate=yes;"
     )
     return pyodbc.connect(conn_str)
 
