@@ -37,7 +37,14 @@ def connect_odoo(args):
 
 
 def fetch_contacts(cursor):
-    cursor.execute("SELECT koref, nm, vnm, strt, plts, lnd, tel, email, iban, bic FROM kon1")
+    # Join kon1 and kon2 to fetch complete contact information
+    query = """
+    SELECT kon1.koref, kon1.nm, kon1.vnm, kon1.strt, kon1.plts, kon1.lnd, 
+           kon2.tel, kon2.email, kon1.iban, kon1.bic 
+    FROM kon1
+    LEFT JOIN kon2 ON kon1.koref = kon2.koref
+    """
+    cursor.execute(query)
     return cursor.fetchall()
 
 
