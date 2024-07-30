@@ -32,7 +32,7 @@ def connect_sql_server(args):
 def connect_odoo(args):
     common = xmlrpc.client.ServerProxy(f"{args.odoo_url}/xmlrpc/2/common")
     uid = common.authenticate(args.odoo_db, args.odoo_user, args.odoo_secret, {})
-    models = xmlrpc.client.ServerProxy(f"{args.odoo_url}/xmlrpc/2/object")
+    models = xmlrpc.client.ServerProxy(f"{args.odoo_url}/xmlrpc/2/object", allow_none=True)
     return uid, models
 
 
